@@ -3,11 +3,11 @@ import threading
 import Flea
 import random
 import FleaDriver
+from neopixel import Color
 
-LaneMutex = threading.Lock()
 
 MaxLanes = 4
-MaxSlots = 30
+MaxSlots = 72
 LaneTable = []
 
 debug=False
@@ -29,9 +29,13 @@ class Place:
   def slot(self):
     return self.pos['slot']
     
+  def toPos(self):
+    return (self.lane() * MaxSlots) + self.slot()
+    
+    
+    
   def clear(self):
-    FleaDriver.queueVal(str(self))
-    FleaDriver.queueVal("0".ljust(6,'0'))
+    FleaDriver.queueVal(self.toPos(),Color(0,0,0))
     self.flea = None
     
   def show(self):
@@ -51,12 +55,9 @@ def setPlace(flea,place):
   flea.place = place
   place.flea = flea
   if place != None:
-    FleaDriver.queueVal(str(place))
-    FleaDriver.queueVal(str(flea))
-    
+    FleaDriver.queueVal(place.toPos(),flea.toColor())
     
 def findPlace(flea):
-  LaneMutex.acquire()
   touched = True
   rval = False
   if flea.place == None:
@@ -67,6 +68,7 @@ def findPlace(flea):
         emptys.append(i)
     if len(emptys) != 0:
       setPlace(flea,LaneTable[random.choice(emptys)][0])
+  
       t = True
     touched = t
   else:
@@ -90,8 +92,7 @@ def findPlace(flea):
   
   if touched:
     FleaDriver.flushIt()
-    dump()
-  LaneMutex.release()
+    #dump()
   return rval
   
 def dump():

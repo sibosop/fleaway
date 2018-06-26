@@ -1,6 +1,23 @@
 #!/usr/bin/env python
 import subprocess
 import time
+from neopixel import Color
+import threading
+
+qMutex = threading.Lock()
+
+
+
+# LED strip configuration:
+LED_COUNT      = 288      # Number of LED pixels.
+LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
+#LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
+LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
+LED_BRIGHTNESS = 255     # Set to 0 for darkest and 255 for brightest
+LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+
 
 debug = False
 
@@ -12,43 +29,48 @@ def isMac():
   return rval
 
 if not isMac():
-  print "not mac"
+  from neopixel import *
 
+strip = None
+def setup():
+  global strip
+  if not isMac():
+    print "not mac"
+    # Create NeoPixel object with appropriate configuration.
+    strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+    # Intialize the library (must be called once before other functions).
+    strip.begin()
 
-buff = ""
-def queueVal(v):
+buff = []
+def queueVal(pos,color):
   global buff
-  if debug: print "queueing",v
-  buff += v
+  if debug: print "queueing",pos,color
+  qMutex.acquire()
+  buff.append({'pos':pos,'color':color})
+  qMutex.release()
+  
+def clear():
+  global strip
+  qMutex.acquire()
+  for i in range(strip.numPixels()):
+      strip.setPixelColor(i, Color(0,0,0))
+  strip.show()
+  qMutex.release()
+  
   
 def flushIt():
   global buff
-  buff += "\n";
+  global strip
+  qMutex.acquire()
   if isMac():
-    if debug: print buff.rstrip()
+    if debug: print buff
   else:
-    if False:
-      val = 0
-      try:
-        while True:
-          buf = "%08X"%val+"\n";
-          o = []
-          for c in buf:
-            o.append(ord(c))
-            #print o
-          resp = spi.writebytes(o)
-          val += 1
-          time.sleep(.0001)
-      except KeyboardInterrupt:
-        spi.close()
-  buff = ""
+      for v in buff:
+        strip.setPixelColor(v['pos'], v['color'])
+      strip.show()
+  buff = []
+  qMutex.release()
   
   
-if __name__ == '__main__':
-  print "isMac:",isMac()
-  queueVal("82AFEF8F")
-  queueVal("43")
-  flushIt()
-  queueVal("FFFFF")
-  flushIt()
+
   

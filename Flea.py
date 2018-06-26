@@ -3,7 +3,8 @@ import time
 import threading
 import random
 import FleaLanes
-
+from neopixel import Color
+     
 debug = False
 class Flea(threading.Thread):
   def __init__(self,name,interval):
@@ -20,6 +21,9 @@ class Flea(threading.Thread):
     return "%02X" % self.color['r'] \
       + "%02X" % self.color['g'] \
       + "%02X" % self.color['b']
+      
+  def toColor(self):
+    return Color(self.color['r'],self.color['g'],self.color['b'])
     
   def dead(self):
     return self.isDead

@@ -2,15 +2,18 @@
 import time
 import Flea
 import FleaLanes
+import FleaDriver
 import random
 
-minFleaBirth = 0.08
-maxFleaBirth = 0.1
+minFleaBirth = 0.1
+maxFleaBirth = 1.
 
 minFleaInterval = 0.01
-maxFleaInterval = .5
+maxFleaInterval = .1
 
-maxFleas = 25
+maxFleas = 5
+minNumFleas = 5
+maxNumFleas = 10
 
 FleaTable = {}
 
@@ -27,23 +30,29 @@ def addFlea():
   for d in deadFleas:
     del FleaTable[d]
       
+  FleaCount += 1
+  if FleaCount == 1000:
+    FleaCount = 0
+  if FleaCount % 25 == 0:
+    maxFleas = random.randint(minNumFleas,maxNumFleas)
+    print "maxFleas:",maxFleas
   if len(FleaTable) < maxFleas:
-    FleaCount += 1
-    if FleaCount == 1000:
-      FleaCount = 0
     flea = Flea.Flea(str(FleaCount),random.uniform(minFleaInterval,maxFleaInterval))
     flea.setDaemon(True)
     FleaTable[flea.name]=flea
     FleaTable[flea.name].start()
-    if FleaCount % 25 == 0:
-      maxFleas = random.randint(5,30)
 
 
 
 if __name__ == '__main__':
-  while True:
-    addFlea()
-    if debug: print "numFleas",len(FleaTable)
-    wait = random.uniform(minFleaBirth,maxFleaBirth) 
-    if debug: print "next flea:",wait
-    time.sleep(wait)
+  FleaDriver.setup()
+  try:
+    while True:
+      addFlea()
+      if debug: print "numFleas",len(FleaTable)
+      wait = random.uniform(minFleaBirth,maxFleaBirth) 
+      if debug: print "next flea:",wait
+      time.sleep(wait)
+  except KeyboardInterrupt:
+    print "FleaWay exiting"
+    FleaDriver.clear()
