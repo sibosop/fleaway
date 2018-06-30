@@ -5,23 +5,30 @@ import FleaLanes
 import FleaDriver
 import random
 
-minFleaBirth = 0.1
-maxFleaBirth = 1.
 
-minFleaInterval = 0.01
-maxFleaInterval = .1
+minFleaInterval = 1
+maxFleaInterval = 5
 
-maxFleas = 5
-minNumFleas = 5
-maxNumFleas = 10
+fleaCount = 5
+fleaBump = 1
+fleaGoal = 10
+minNumFleas = 1
+maxNumFleas = 30
+
+
+FleaQuant=.0005
+
+AddInterval = 1000
 
 FleaTable = {}
 
 debug = False
-FleaCount=0
+FleaCounter=0
 def addFlea():
-  global FleaCount
-  global maxFleas
+  global FleaCounter
+  global fleaCount
+  global fleaGoal
+  global fleaBump
   deadFleas=[]
   for flea in FleaTable:
     if FleaTable[flea].dead():
@@ -30,29 +37,39 @@ def addFlea():
   for d in deadFleas:
     del FleaTable[d]
       
-  FleaCount += 1
-  if FleaCount == 1000:
-    FleaCount = 0
-  if FleaCount % 25 == 0:
-    maxFleas = random.randint(minNumFleas,maxNumFleas)
-    print "maxFleas:",maxFleas
-  if len(FleaTable) < maxFleas:
-    flea = Flea.Flea(str(FleaCount),random.uniform(minFleaInterval,maxFleaInterval))
-    flea.setDaemon(True)
+  FleaCounter+= 1
+  if FleaCounter % 100 == 0:
+    fleaCount += fleaBump
+    if fleaCount == fleaGoal:
+      while fleaGoal == fleaCount:
+        fleaGoal = random.randint(minNumFleas,maxNumFleas)
+      if fleaCount < fleaGoal:
+        fleaBump = 1
+      else:
+        fleaBump = -1
+
+    print"fleaCount:",fleaCount,"fleaGoal",fleaGoal
+
+  if len(FleaTable) < fleaCount:
+    flea = Flea.Flea(str(FleaCounter),random.randint(minFleaInterval,maxFleaInterval))
     FleaTable[flea.name]=flea
-    FleaTable[flea.name].start()
 
 
 
 if __name__ == '__main__':
   FleaDriver.setup()
+  for i in range(fleaCount):
+      addFlea()
   try:
+    addCounter = 0
     while True:
       addFlea()
+      for flea in FleaTable:
+        FleaTable[flea].run()
+      FleaDriver.flushIt()
       if debug: print "numFleas",len(FleaTable)
-      wait = random.uniform(minFleaBirth,maxFleaBirth) 
       if debug: print "next flea:",wait
-      time.sleep(wait)
+      time.sleep(FleaQuant)
   except KeyboardInterrupt:
     print "FleaWay exiting"
     FleaDriver.clear()

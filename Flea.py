@@ -1,21 +1,23 @@
 #!/usr/bin/env python
-import time
-import threading
 import random
 import FleaLanes
 from neopixel import Color
+
+maxR = 60
+maxG = 40
+maxB = 20
      
 debug = False
-class Flea(threading.Thread):
+class Flea():
   def __init__(self,name,interval):
-    super(Flea,self).__init__()
     self.isDead = False
     self.number = name
     self.name = "Flea"+name
     self.place = None
     self.interval = interval
     self.count=0
-    self.color = {'r' : random.randint(0,255), 'g' : random.randint(0,255), 'b' : random.randint(0,255)}
+    self.color = {'r' : random.randint(0,maxR), 'g' : random.randint(0,maxG), 'b' : random.randint(0,maxB)}
+    if debug: print("Starting Flea:"+self.name)
     
   def __str__(self):
     return "%02X" % self.color['r'] \
@@ -23,7 +25,8 @@ class Flea(threading.Thread):
       + "%02X" % self.color['b']
       
   def toColor(self):
-    return Color(self.color['r'],self.color['g'],self.color['b'])
+    # seems to be grb
+    return Color(self.color['g'],self.color['r'],self.color['b'])
     
   def dead(self):
     return self.isDead
@@ -41,11 +44,13 @@ class Flea(threading.Thread):
     if debug: print "-".rjust(8,"-")
     
   def run(self):
-    if debug: print("Starting Flea:"+self.name)
-    while not self.dead():
+    if self.count < self.interval:
+      self.count += 1
+      return
+    self.count = 0
+    if not self.dead():
       self.move()
-      time.sleep(self.interval)
-      
-    if debug: print("Dead Flea:"+self.name)
+    else:
+      if debug: print("Dead Flea:"+self.name)
         
       

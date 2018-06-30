@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 import subprocess
-import time
 from neopixel import Color
-import threading
-
-qMutex = threading.Lock()
-
-
 
 # LED strip configuration:
 LED_COUNT      = 288      # Number of LED pixels.
@@ -45,23 +39,20 @@ buff = []
 def queueVal(pos,color):
   global buff
   if debug: print "queueing",pos,color
-  qMutex.acquire()
   buff.append({'pos':pos,'color':color})
-  qMutex.release()
   
 def clear():
   global strip
-  qMutex.acquire()
   for i in range(strip.numPixels()):
       strip.setPixelColor(i, Color(0,0,0))
   strip.show()
-  qMutex.release()
   
   
 def flushIt():
   global buff
   global strip
-  qMutex.acquire()
+  if len(buff) == 0:
+    return
   if isMac():
     if debug: print buff
   else:
@@ -69,7 +60,6 @@ def flushIt():
         strip.setPixelColor(v['pos'], v['color'])
       strip.show()
   buff = []
-  qMutex.release()
   
   
 

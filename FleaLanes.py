@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-import threading
 import Flea
 import random
 import FleaDriver
 from neopixel import Color
 
 
-MaxLanes = 4
+MaxLanes = 3
 MaxSlots = 72
 LaneTable = []
 
@@ -30,7 +29,13 @@ class Place:
     return self.pos['slot']
     
   def toPos(self):
-    return (self.lane() * MaxSlots) + self.slot()
+    rval = 0
+    if self.lane() % 2:
+      #odd lanes are backwards
+      rval=(self.lane()*MaxSlots)+(MaxSlots-self.slot()-1)
+    else:
+      rval = (self.lane() * MaxSlots) + self.slot()
+    return rval
     
     
     
@@ -90,8 +95,8 @@ def findPlace(flea):
       setPlace(flea,LaneTable[lane+1][nextSlot])
       touched = True
   
-  if touched:
-    FleaDriver.flushIt()
+  #if touched:
+    #FleaDriver.flushIt()
     #dump()
   return rval
   
