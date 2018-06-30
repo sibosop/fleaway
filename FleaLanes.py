@@ -63,19 +63,14 @@ def setPlace(flea,place):
     FleaDriver.queueVal(place.toPos(),flea.toColor())
     
 def findPlace(flea):
-  touched = True
   rval = False
   if flea.place == None:
-    t = False
     emptys = []
     for i in range(MaxLanes-1,-1,-1):
       if LaneTable[i][0].empty():
         emptys.append(i)
     if len(emptys) != 0:
       setPlace(flea,LaneTable[random.choice(emptys)][0])
-  
-      t = True
-    touched = t
   else:
     lane = flea.place.lane()
     slot = flea.place.slot()
@@ -83,21 +78,14 @@ def findPlace(flea):
     # look ahead straight
     if nextSlot == MaxSlots:
       LaneTable[lane][slot].clear()
-      touched = True
       rval = True
     elif LaneTable[lane][nextSlot].empty():
       setPlace(flea,LaneTable[lane][nextSlot])
-      touched = True
     elif lane != 0 and LaneTable[lane-1][nextSlot].empty():
       setPlace(flea,LaneTable[lane-1][nextSlot])
-      touched = True
     elif (lane+1) != MaxLanes and LaneTable[lane+1][nextSlot].empty():
       setPlace(flea,LaneTable[lane+1][nextSlot])
-      touched = True
   
-  #if touched:
-    #FleaDriver.flushIt()
-    #dump()
   return rval
   
 def dump():

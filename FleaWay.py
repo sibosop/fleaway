@@ -12,11 +12,11 @@ maxFleaInterval = 5
 fleaCount = 5
 fleaBump = 1
 fleaGoal = 10
-minNumFleas = 1
-maxNumFleas = 30
+minNumFleas = 0
+maxNumFleas = (FleaLanes.MaxLanes * FleaLanes.MaxSlots)/4
 
 
-FleaQuant=.0005
+FleaQuant=.001
 
 AddInterval = 1000
 
@@ -29,6 +29,7 @@ def addFlea():
   global fleaCount
   global fleaGoal
   global fleaBump
+  global skips
   deadFleas=[]
   for flea in FleaTable:
     if FleaTable[flea].dead():
@@ -36,9 +37,11 @@ def addFlea():
       deadFleas.append(flea)
   for d in deadFleas:
     del FleaTable[d]
+
       
   FleaCounter+= 1
   if FleaCounter % 100 == 0:
+    print"fleaCount:",fleaCount,"fleaGoal",fleaGoal
     fleaCount += fleaBump
     if fleaCount == fleaGoal:
       while fleaGoal == fleaCount:
@@ -48,7 +51,6 @@ def addFlea():
       else:
         fleaBump = -1
 
-    print"fleaCount:",fleaCount,"fleaGoal",fleaGoal
 
   if len(FleaTable) < fleaCount:
     flea = Flea.Flea(str(FleaCounter),random.randint(minFleaInterval,maxFleaInterval))
